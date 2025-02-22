@@ -23,33 +23,49 @@ public:
 
     // 核心接口
     void insert(const T &key) {
+        if (!root) {
+            root = new node(key);
+            p_size++;
+            return;
+        }
+
         node *z = root;
-        node *p = 0;
+        node *p = nullptr;
         
-        while( z ) {
-          p = z;
-          if( comp( z->key, key ) ) z = z->right;
-          else z = z->left;
+        while (z) {
+            p = z;
+            if (comp(key, z->key))
+                z = z->left;
+            else if (comp(z->key, key))
+                z = z->right;
+            else {
+                splay(z);  // 如果找到相同的键，将其旋转到根
+                return;
+            }
         }
         
-        z = new node( key );
+        z = new node(key);
         z->parent = p;
         
-        if( !p ) root = z;
-        else if( comp( p->key, z->key ) ) p->right = z;
-        else p->left = z;
+        if (comp(key, p->key))
+            p->left = z;
+        else
+            p->right = z;
         
-        splay( z );
+        splay(z);
         p_size++;
     }
     node* find(const T &key) {
         node *z = root;
-        while( z ) {
-          if( comp( z->key, key ) ) z = z->right;
-          else if( comp( key, z->key ) ) z = z->left;
-          else return z;
+        while(z) {
+            if(comp(z->key, key)) z = z->right;
+            else if(comp(key, z->key)) z = z->left;
+            else {
+                splay(z);  // 找到节点后执行伸展操作
+                return z;
+            }
         }
-        return 0;
+        return nullptr;
     }
     void erase(const T &key) {
         node *z = find( key );
@@ -99,24 +115,37 @@ public:
         y->right = x;
         x->parent = y; 
     }
-    void splay(node *x) { while( x->parent ) {
-        if( !x->parent->parent ) {
-          if( x->parent->left == x ) right_rotate( x->parent );
-          else left_rotate( x->parent );
-        } else if( x->parent->left == x && x->parent->parent->left == x->parent ) {
-          right_rotate( x->parent->parent );
-          right_rotate( x->parent );
-        } else if( x->parent->right == x && x->parent->parent->right == x->parent ) {
-          left_rotate( x->parent->parent );
-          left_rotate( x->parent );
-        } else if( x->parent->left == x && x->parent->parent->right == x->parent ) {
-          right_rotate( x->parent );
-          left_rotate( x->parent );
-        } else {
-          left_rotate( x->parent );
-          right_rotate( x->parent );
+    void splay(node *x) {
+        if (!x) return;
+        
+        while (x->parent) {
+            node *p = x->parent;
+            node *g = p->parent;
+            
+            if (!g) {  // Zig
+                if (p->left == x)
+                    right_rotate(p);
+                else
+                    left_rotate(p);
+            }
+            else if (g->left == p && p->left == x) {  // Zig-Zig
+                right_rotate(g);
+                right_rotate(p);
+            }
+            else if (g->right == p && p->right == x) {  // Zig-Zig
+                left_rotate(g);
+                left_rotate(p);
+            }
+            else if (g->left == p && p->right == x) {  // Zig-Zag
+                left_rotate(p);
+                right_rotate(g);
+            }
+            else {  // Zig-Zag
+                right_rotate(p);
+                left_rotate(g);
+            }
         }
-      }
+        root = x;  // 确保根节点更新
     }
 
     // 辅助函数
