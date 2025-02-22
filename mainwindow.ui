@@ -58,6 +58,20 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="splitButton">
+        <property name="text">
+         <string>拆分</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="mergeButton">
+        <property name="text">
+         <string>合并</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

@@ -20,6 +20,13 @@ private slots:
     void onInsertClicked();
     void onDeleteClicked();
     void onSearchClicked();
+    void onSplitClicked();
+    void onMergeClicked();
+
+private:
+    SplayTree<int>* m_leftTree = nullptr;
+    SplayTree<int>* m_rightTree = nullptr;
+    bool m_isInSplitState = false;
 
 public:
     Ui::MainWindow *ui;
