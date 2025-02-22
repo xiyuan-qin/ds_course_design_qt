@@ -24,13 +24,13 @@ private slots:
     void onMergeClicked();
 
 private:
+    void cleanup_split_state();  // 只声明，不实现
+
     SplayTree<int>* m_leftTree = nullptr;
     SplayTree<int>* m_rightTree = nullptr;
     bool m_isInSplitState = false;
-
-public:
     Ui::MainWindow *ui;
-    SplayTree<int> m_tree; // 改为成员变量形式
+    SplayTree<int> m_tree;
     void updateTreeDisplay();
 };
 #endif // MAINWINDOW_H

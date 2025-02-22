@@ -161,6 +161,12 @@ void MainWindow::onSplitClicked() {
     
     ui->textBrowser->append(QString("已按键值 %1 拆分树为 [≤%1] 和 [>%1] 两部分")
                           .arg(val));
+    
+    // 添加内存使用状态检查
+    QString memStatus = QString("当前节点数: %1, 总分配次数: %2")
+                        .arg(m_tree.get_current_nodes())
+                        .arg(m_tree.get_total_allocations());
+    ui->textBrowser->append(memStatus);
 }
 
 void MainWindow::onMergeClicked() {
@@ -169,35 +175,42 @@ void MainWindow::onMergeClicked() {
         return;
     }
 
-    // 合并前检查
+    // 安全检查
     if (!m_leftTree || !m_rightTree) {
-        QMessageBox::warning(this, "错误", "拆分树状态异常!");
-        m_isInSplitState = false;
+        cleanup_split_state();
         return;
     }
 
-    // 执行合并
+    // 尝试合并
     SplayTree<int>* merged = SplayTree<int>::merge(m_leftTree, m_rightTree);
     if (!merged) {
+        cleanup_split_state();
         QMessageBox::warning(this, "错误", "合并失败：左树的最大值必须小于右树的最小值!");
-        // 重置状态
-        delete m_leftTree;
-        delete m_rightTree;
-        m_leftTree = m_rightTree = nullptr;
-        m_isInSplitState = false;
         return;
     }
 
     // 更新主树
-    m_tree = *merged;
+    m_tree = std::move(*merged);
     delete merged;
 
-    // 清理状态
     m_leftTree = m_rightTree = nullptr;
     m_isInSplitState = false;
 
-    // 更新显示
+    // 显示内存状态
+    QString memStatus = QString("合并后节点数: %1, 总分配次数: %2")
+                        .arg(m_tree.get_current_nodes())
+                        .arg(m_tree.get_total_allocations());
+    ui->textBrowser->append(memStatus);
+
     ui->treeWidget->setTree(&m_tree);
-    ui->textBrowser->append("已成功合并树");
     updateTreeDisplay();
+}
+
+// 移到cpp文件中实现
+void MainWindow::cleanup_split_state() {
+    delete m_leftTree;
+    delete m_rightTree;
+    m_leftTree = m_rightTree = nullptr;
+    m_isInSplitState = false;
+    SplayTree<int>::cleanup_unused();
 }

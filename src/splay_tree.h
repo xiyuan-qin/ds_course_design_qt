@@ -1,31 +1,79 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+#include <set>
 #include <vector>
-#include <algorithm>
 
 template<typename T, typename Comp = std::less<T>>
 class SplayTree {
 public:
+    // 节点结构声明必须放在最前面
     struct node {
-        node *left, *right;
-        node *parent;
+        node *left = nullptr;
+        node *right = nullptr;
+        node *parent = nullptr;
         T key;
-        int x = 0, y = 0;  // 节点绘制坐标
-        node(const T& init = T()) : 
-            left(nullptr), right(nullptr), parent(nullptr), key(init) {}
+        size_t ref_count = 0;
+        
+        explicit node(const T& k) : key(k) {}
     };
 
+private:
+    // 静态成员声明
+    static const size_t MAX_NODES = 100;
+    static std::set<node*> node_pool;
+    static size_t total_allocations;
+
+    // 节点内存管理
+    static node* allocate_node(const T& key) {
+        if (node_pool.size() >= MAX_NODES) {
+            cleanup_unused();
+        }
+        if (node_pool.size() >= MAX_NODES) return nullptr;
+        
+        auto* new_node = new node(key);
+        node_pool.insert(new_node);
+        total_allocations++;
+        return new_node;
+    }
+    
+    static void deallocate_node(node* n) {
+        if (!n) return;
+        auto it = node_pool.find(n);
+        if (it != node_pool.end()) {
+            node_pool.erase(it);
+            delete n;
+        }
+    }
+
+public:
+    // 将cleanup_unused移到public区域
+    static void cleanup_unused() {
+        std::vector<node*> to_remove;
+        for (auto* n : node_pool) {
+            if (n->ref_count == 0) {
+                to_remove.push_back(n);
+            }
+        }
+        for (auto* n : to_remove) {
+            deallocate_node(n);
+        }
+    }
+
+public:
+    // 基本属性
     Comp comp;
     unsigned long p_size;
-    node *root;
+    node* root;
 
-    SplayTree() : root(nullptr), p_size(0) {}
+    // 构造和析构
+    SplayTree() : p_size(0), root(nullptr) {}
     ~SplayTree() { 
-        clear(root); 
+        if (root) clear(root);
         root = nullptr;
         p_size = 0;
-    }  // 析构函数释放内存
+    }
 
     // 核心接口
     void insert(const T &key) {
@@ -234,78 +282,80 @@ public:
         return {left, right};
     }
 
-    // 修改合并操作
     static SplayTree* merge(SplayTree* t1, SplayTree* t2) {
-        if (!t1 || !t1->root) {
-            if (t2) {
-                auto* result = new SplayTree();
+        if (!t1 || !t1->root || !t2 || !t2->root) {
+            SplayTree* result = new SplayTree();
+            if (t1 && t1->root) {
+                result->root = t1->root;
+                result->p_size = t1->p_size;
+                t1->root = nullptr;
+                t1->p_size = 0;
+            } else if (t2 && t2->root) {
                 result->root = t2->root;
                 result->p_size = t2->p_size;
                 t2->root = nullptr;
                 t2->p_size = 0;
-                delete t1;
-                delete t2;
-                return result;
             }
-            delete t1;
-            delete t2;
-            return nullptr;
-        }
-        if (!t2 || !t2->root) {
-            auto* result = new SplayTree();
-            result->root = t1->root;
-            result->p_size = t1->p_size;
-            t1->root = nullptr;
-            t1->p_size = 0;
             delete t1;
             delete t2;
             return result;
         }
 
-        // 检查合并条件：左树最大值必须小于右树最小值
-        auto max_left = t1->subtree_maximum(t1->root);
-        auto min_right = t2->subtree_minimum(t2->root);
-        if (max_left->key >= min_right->key) {
+        // 验证合并条件
+        if (t1->maximum() >= t2->minimum()) {
             delete t1;
             delete t2;
             return nullptr;
         }
 
-        // 创建新树并执行合并
         auto* result = new SplayTree();
         
-        // 将左树最大节点旋转到根
-        t1->splay(max_left);
+        // 找到左树最大节点并旋转到根
+        t1->splay(t1->subtree_maximum(t1->root));
         
-        // 合并两棵树
+        // 执行合并
         result->root = t1->root;
         result->root->right = t2->root;
-        if (t2->root) {
-            t2->root->parent = result->root;
-        }
+        t2->root->parent = result->root;
         result->p_size = t1->p_size + t2->p_size;
 
-        // 清理原树
-        t1->root = nullptr;
-        t2->root = nullptr;
+        // 安全清理
+        t1->root = t2->root = nullptr;
         t1->p_size = t2->p_size = 0;
+        
+        // 增加引用计数
+        if (result->root) {
+            result->update_ref_counts(result->root);
+        }
+
         delete t1;
         delete t2;
-
         return result;
     }
 
 private:
-    // 计算节点数的辅助函数
-    unsigned long countNodes(node* x) const {
-        if (!x) return 0;
-        unsigned long count = 1;
-        if (x->left) count += countNodes(x->left);
-        if (x->right) count += countNodes(x->right);
-        return count;
+    // 更新引用计数
+    void update_ref_counts(node* n) {
+        if (!n) return;
+        n->ref_count++;
+        update_ref_counts(n->left);
+        update_ref_counts(n->right);
     }
 
-private: // 以下保持原实现，但根据需要改为public
+    // 减少引用计数
+    void decrease_ref_counts(node* n) {
+        if (!n) return;
+        n->ref_count--;
+        decrease_ref_counts(n->left);
+        decrease_ref_counts(n->right);
+    }
+
+    // 辅助函数
+    unsigned long countNodes(node* x) const {
+        if (!x) return 0;
+        return 1 + countNodes(x->left) + countNodes(x->right);
+    }
+
     void erase_impl(const T &key) {
         node *z = find(key);
         if (!z) return;
@@ -336,27 +386,6 @@ private: // 以下保持原实现，但根据需要改为public
     bool empty( ) const { return root == 0; }
 public: unsigned long size( ) const { return p_size; }
 
-private:
-    // 添加内存池管理
-    static const size_t MAX_NODES = 1000;  // 限制最大节点数
-    static std::vector<node*> node_pool;   // 节点池
-    
-    node* allocate_node(const T& key) {
-        if (node_pool.size() >= MAX_NODES) return nullptr;
-        node* new_node = new node(key);
-        node_pool.push_back(new_node);
-        return new_node;
-    }
-    
-    void deallocate_node(node* n) {
-        if (!n) return;
-        auto it = std::find(node_pool.begin(), node_pool.end(), n);
-        if (it != node_pool.end()) {
-            node_pool.erase(it);
-            delete n;
-        }
-    }
-
 public:
     // 添加垃圾回收机制
     static void cleanup() {
@@ -370,7 +399,18 @@ public:
     bool is_full() const {
         return node_pool.size() >= MAX_NODES;
     }
+
+    // 添加静态方法访问器
+    static size_t get_current_nodes() { return node_pool.size(); }
+    static size_t get_total_allocations() { return total_allocations; }
 };
 
+// 静态成员定义
 template<typename T, typename Comp>
-std::vector<typename SplayTree<T, Comp>::node*> SplayTree<T, Comp>::node_pool;
+std::set<typename SplayTree<T, Comp>::node*> SplayTree<T, Comp>::node_pool;
+
+template<typename T, typename Comp>
+size_t SplayTree<T, Comp>::total_allocations = 0;
+
+template<typename T, typename Comp>
+const size_t SplayTree<T, Comp>::MAX_NODES;
