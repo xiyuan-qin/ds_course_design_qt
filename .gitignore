@@ -2,3 +2,4 @@ build/
 *.ts
 *.pro
 *.pro.user 
+.vscode/
