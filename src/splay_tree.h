@@ -67,8 +67,52 @@ public:
     unsigned long p_size;
     node* root;
 
-    // 构造和析构
+    // 构造和析构函数
     SplayTree() : p_size(0), root(nullptr) {}
+    
+    // 复制构造
+    SplayTree(const SplayTree& other) : p_size(0), root(nullptr) {
+        if (other.root) {
+            root = copy_tree(other.root);
+            p_size = other.p_size;
+        }
+    }
+    
+    // 移动构造
+    SplayTree(SplayTree&& other) noexcept 
+        : root(other.root), p_size(other.p_size) {
+        other.root = nullptr;
+        other.p_size = 0;
+    }
+    
+    // 复制赋值
+    SplayTree& operator=(const SplayTree& other) {
+        if (this != &other) {
+            clear(root);
+            root = nullptr;
+            p_size = 0;
+            
+            if (other.root) {
+                root = copy_tree(other.root);
+                p_size = other.p_size;
+            }
+        }
+        return *this;
+    }
+
+    // 移动赋值
+    SplayTree& operator=(SplayTree&& other) noexcept {
+        if (this != &other) {
+            clear(root);
+            root = other.root;
+            p_size = other.p_size;
+            other.root = nullptr;
+            other.p_size = 0;
+        }
+        return *this;
+    }
+
+    // 析构函数
     ~SplayTree() { 
         if (root) clear(root);
         root = nullptr;
@@ -283,14 +327,10 @@ public:
     }
 
     static SplayTree* merge(SplayTree* t1, SplayTree* t2) {
-        if (!t1 || !t1->root || !t2 || !t2->root) {
-            SplayTree* result = new SplayTree();
-            if (t1 && t1->root) {
-                result->root = t1->root;
-                result->p_size = t1->p_size;
-                t1->root = nullptr;
-                t1->p_size = 0;
-            } else if (t2 && t2->root) {
+        // 空树快速处理
+        if (!t1 || !t1->root) {
+            auto* result = new SplayTree();
+            if (t2 && t2->root) {
                 result->root = t2->root;
                 result->p_size = t2->p_size;
                 t2->root = nullptr;
@@ -300,32 +340,46 @@ public:
             delete t2;
             return result;
         }
+        if (!t2 || !t2->root) {
+            auto* result = new SplayTree();
+            result->root = t1->root;
+            result->p_size = t1->p_size;
+            t1->root = nullptr;
+            t1->p_size = 0;
+            delete t1;
+            delete t2;
+            return result;
+        }
 
         // 验证合并条件
-        if (t1->maximum() >= t2->minimum()) {
+        node* max_node = t1->subtree_maximum(t1->root);
+        node* min_node = t2->subtree_minimum(t2->root);
+        if (!(t1->comp(max_node->key, min_node->key))) {
             delete t1;
             delete t2;
             return nullptr;
         }
 
+        // 优化合并过程
         auto* result = new SplayTree();
+        t1->splay(max_node);  // 将最大节点旋转到根
         
-        // 找到左树最大节点并旋转到根
-        t1->splay(t1->subtree_maximum(t1->root));
+        // 直接连接两棵树
+        t1->root->right = t2->root;
+        if (t2->root) {
+            t2->root->parent = t1->root;
+        }
         
-        // 执行合并
         result->root = t1->root;
-        result->root->right = t2->root;
-        t2->root->parent = result->root;
         result->p_size = t1->p_size + t2->p_size;
 
-        // 安全清理
+        // 重置原树
         t1->root = t2->root = nullptr;
         t1->p_size = t2->p_size = 0;
         
-        // 增加引用计数
+        // 批量更新引用计数
         if (result->root) {
-            result->update_ref_counts(result->root);
+            result->batch_update_ref_counts(result->root);
         }
 
         delete t1;
@@ -348,6 +402,51 @@ private:
         n->ref_count--;
         decrease_ref_counts(n->left);
         decrease_ref_counts(n->right);
+    }
+
+    // 新增：批量更新引用计数
+    void batch_update_ref_counts(node* n) {
+        if (!n) return;
+        
+        std::vector<node*> nodes;
+        collect_nodes(n, nodes);
+        
+        for (node* node : nodes) {
+            node->ref_count++;
+        }
+    }
+
+    void collect_nodes(node* n, std::vector<node*>& nodes) {
+        if (!n) return;
+        nodes.push_back(n);
+        collect_nodes(n->left, nodes);
+        collect_nodes(n->right, nodes);
+    }
+
+    // 添加树复制辅助函数
+    node* copy_tree(node* src) {
+        if (!src) return nullptr;
+        
+        node* new_node = allocate_node(src->key);
+        if (!new_node) return nullptr;
+        
+        new_node->ref_count = src->ref_count;
+        
+        if (src->left) {
+            new_node->left = copy_tree(src->left);
+            if (new_node->left) {
+                new_node->left->parent = new_node;
+            }
+        }
+        
+        if (src->right) {
+            new_node->right = copy_tree(src->right);
+            if (new_node->right) {
+                new_node->right->parent = new_node;
+            }
+        }
+        
+        return new_node;
     }
 
     // 辅助函数

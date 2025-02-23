@@ -42,7 +42,7 @@ MainWindow::~MainWindow() {
 void MainWindow::updateTreeDisplay()
 {
     // 减少不必要的更新
-    static int lastSize = -1;
+    static unsigned long lastSize = 0;  // 修改为unsigned long以匹配size()返回类型
     if (m_tree.size() == lastSize && !m_isInSplitState) return;
     lastSize = m_tree.size();
     
@@ -175,38 +175,62 @@ void MainWindow::onMergeClicked() {
         return;
     }
 
-    // 安全检查
-    if (!m_leftTree || !m_rightTree) {
-        cleanup_split_state();
-        return;
-    }
+    // 禁用所有按钮，防止用户重复操作
+    setControlsEnabled(false);
 
-    // 尝试合并
-    SplayTree<int>* merged = SplayTree<int>::merge(m_leftTree, m_rightTree);
-    if (!merged) {
-        cleanup_split_state();
-        QMessageBox::warning(this, "错误", "合并失败：左树的最大值必须小于右树的最小值!");
-        return;
-    }
+    // 使用QTimer延迟执行合并操作
+    QTimer::singleShot(0, this, [this]() {
+        // 安全检查
+        if (!m_leftTree || !m_rightTree) {
+            cleanup_split_state();
+            setControlsEnabled(true);
+            return;
+        }
 
-    // 更新主树
-    m_tree = std::move(*merged);
-    delete merged;
+        // 尝试合并
+        SplayTree<int>* merged = SplayTree<int>::merge(m_leftTree, m_rightTree);
+        if (!merged) {
+            cleanup_split_state();
+            QMessageBox::warning(this, "错误", "合并失败：左树的最大值必须小于右树的最小值!");
+            setControlsEnabled(true);
+            return;
+        }
 
-    m_leftTree = m_rightTree = nullptr;
-    m_isInSplitState = false;
+        // 更新主树
+        m_tree.clear(m_tree.root);
+        m_tree.root = merged->root;
+        m_tree.p_size = merged->p_size;
+        merged->root = nullptr;
+        merged->p_size = 0;
+        delete merged;
 
-    // 显示内存状态
-    QString memStatus = QString("合并后节点数: %1, 总分配次数: %2")
-                        .arg(m_tree.get_current_nodes())
-                        .arg(m_tree.get_total_allocations());
-    ui->textBrowser->append(memStatus);
+        m_leftTree = m_rightTree = nullptr;
+        m_isInSplitState = false;
 
-    ui->treeWidget->setTree(&m_tree);
-    updateTreeDisplay();
+        // 强制垃圾回收
+        SplayTree<int>::cleanup_unused();
+
+        // 更新UI
+        ui->treeWidget->setTree(&m_tree);
+        updateTreeDisplay();
+
+        // 恢复按钮状态
+        setControlsEnabled(true);
+
+        ui->textBrowser->append("合并完成");
+    });
 }
 
-// 移到cpp文件中实现
+// 新增：控制UI元素启用状态的辅助函数
+void MainWindow::setControlsEnabled(bool enabled) {
+    ui->insertButton->setEnabled(enabled);
+    ui->deleteButton->setEnabled(enabled);
+    ui->searchButton->setEnabled(enabled);
+    ui->splitButton->setEnabled(enabled);
+    ui->mergeButton->setEnabled(enabled);
+    ui->lineEdit->setEnabled(enabled);
+}
+
 void MainWindow::cleanup_split_state() {
     delete m_leftTree;
     delete m_rightTree;

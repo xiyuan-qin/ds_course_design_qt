@@ -25,6 +25,7 @@ private slots:
 
 private:
     void cleanup_split_state();  // 只声明，不实现
+    void setControlsEnabled(bool enabled);
 
     SplayTree<int>* m_leftTree = nullptr;
     SplayTree<int>* m_rightTree = nullptr;
