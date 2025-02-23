@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QPainter>
+#include <QPainterPath>  // 添加此行
 #include <vector>
 #include "src/splay_tree.h"
 

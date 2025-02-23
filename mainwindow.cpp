@@ -159,7 +159,7 @@ void MainWindow::onSplitClicked() {
                         .arg(m_rightTree->size());
     statusBar()->showMessage(status);
     
-    ui->textBrowser->append(QString("已按键值 %1 拆分树为 [≤%1] 和 [>%1] 两部分")
+    ui->textBrowser->append(QString("已按键值 %1 拆分树为 [<%1] 和 [≥%1] 两部分")
                           .arg(val));
     
     // 添加内存使用状态检查
