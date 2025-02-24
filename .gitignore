@@ -3,3 +3,4 @@ build/
 *.pro
 *.pro.user 
 .vscode/
+.DS_Store
