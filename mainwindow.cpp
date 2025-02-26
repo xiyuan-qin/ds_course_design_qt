@@ -82,13 +82,28 @@ void MainWindow::onInsertClicked() {
 void MainWindow::onDeleteClicked() {
     bool ok;
     int val = ui->lineEdit->text().toInt(&ok);
-    if (ok) {
-        m_tree.erase(val);
-        updateTreeDisplay();
-        ui->textBrowser->append("已删除: " + QString::number(val));
-    } else {
-        ui->textBrowser->append("输入无效!");
+    if (!ok) {
+        QMessageBox::warning(this, "错误", "请输入有效的数字!");
+        return;
     }
+
+    // 先保存当前根节点值用于比较
+    int oldRootVal = m_tree.root ? m_tree.root->key : -1;
+    
+    m_tree.erase(val);
+    
+    int newRootVal = m_tree.root ? m_tree.root->key : -1;
+    
+    if (oldRootVal == val) {
+        ui->textBrowser->append(QString("已删除节点 %1").arg(val));
+    } else if (oldRootVal != newRootVal) {
+        ui->textBrowser->append(QString("未找到节点 %1，最后访问的节点 %2 已旋转至根")
+                              .arg(val).arg(newRootVal));
+    } else {
+        ui->textBrowser->append(QString("未找到节点 %1，树为空或无需旋转").arg(val));
+    }
+    
+    updateTreeDisplay();
 }
 
 void MainWindow::onSearchClicked() {
@@ -99,16 +114,29 @@ void MainWindow::onSearchClicked() {
         return;
     }
 
+    // 先保存当前根节点值用于比较
+    int oldRootVal = m_tree.root ? m_tree.root->key : -1;
+    
     auto node = m_tree.find(val);
+    int newRootVal = m_tree.root ? m_tree.root->key : -1;
+    
+    // 更新显示并触发动画
+    ui->treeWidget->setTree(&m_tree);
+    
     if (node) {
         ui->textBrowser->append(QString("找到节点 %1 并旋转至根节点").arg(val));
     } else {
-        ui->textBrowser->append(QString("未找到节点 %1，最后访问的节点已旋转至根").arg(val));
+        if (oldRootVal != newRootVal) {
+            ui->textBrowser->append(QString("未找到节点 %1，最后访问的节点 %2 已旋转至根")
+                                  .arg(val).arg(newRootVal));
+        } else {
+            ui->textBrowser->append(QString("未找到节点 %1，树为空或无需旋转").arg(val));
+        }
     }
     
-    // 强制更新显示
-    ui->treeWidget->update();
-    qApp->processEvents();
+    // 强制更新显示并添加延迟更新以确保动画效果
+    updateTreeDisplay();
+    QTimer::singleShot(50, this, &MainWindow::updateTreeDisplay);
 }
 
 void MainWindow::onSplitClicked() {
@@ -159,7 +187,7 @@ void MainWindow::onSplitClicked() {
                         .arg(m_rightTree->size());
     statusBar()->showMessage(status);
     
-    ui->textBrowser->append(QString("已按键值 %1 拆分树为 [<%1] 和 [≥%1] 两部分")
+    ui->textBrowser->append(QString("已按键值 %1 拆分树为 [≤%1] 和 [>%1] 两部分")
                           .arg(val));
     
     // 添加内存使用状态检查

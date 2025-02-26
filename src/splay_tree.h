@@ -8,7 +8,6 @@
 template<typename T, typename Comp = std::less<T>>
 class SplayTree {
 public:
-    // 节点结构声明必须放在最前面
     struct node {
         node *left = nullptr;
         node *right = nullptr;
@@ -48,7 +47,6 @@ private:
     }
 
 public:
-    // 将cleanup_unused移到public区域
     static void cleanup_unused() {
         std::vector<node*> to_remove;
         for (auto* n : node_pool) {
@@ -156,46 +154,65 @@ public:
         p_size++;
     }
 
+    // 修改查找函数，始终将最后访问的节点伸展到根
     node* find(const T &key) {
-        node *z = root;
-        while(z) {
-            if(comp(z->key, key)) z = z->right;
-            else if(comp(key, z->key)) z = z->left;
-            else {
-                splay(z);  // 将找到的节点旋转到根
-                root = z;  // 确保root指针更新
-                return z;
+        if (!root) return nullptr;
+        
+        node* last_accessed = root;
+        node* current = root;
+        
+        while (current) {
+            last_accessed = current;
+            if (comp(current->key, key)) {
+                current = current->right;
+            } else if (comp(key, current->key)) {
+                current = current->left;
+            } else {
+                splay(current);
+                return current;
             }
         }
         
-        // 如果没找到，将最后访问的节点旋转到根
-        if (root) {
-            splay(root);
-        }
+        // 将最后访问的节点伸展到根
+        splay(last_accessed);
         return nullptr;
     }
 
+    // 重写删除逻辑
     void erase(const T &key) {
-        node *z = find( key );
-        if( !z ) return;
+        // 1. 查找目标节点并伸展到根
+        node* target = find(key);
+        if (!target) return;  // 节点不存在，find已经将最后访问节点伸展到根
         
-        splay( z );
+        // 2. 分裂为左右子树
+        node* left_tree = target->left;
+        node* right_tree = target->right;
         
-        if( !z->left ) replace( z, z->right );
-        else if( !z->right ) replace( z, z->left );
-        else {
-          node *y = subtree_minimum( z->right );
-          if( y->parent != z ) {
-            replace( y, y->right );
-            y->right = z->right;
-            y->right->parent = y;
-          }
-          replace( z, y );
-          y->left = z->left;
-          y->left->parent = y;
+        // 断开父子关系
+        if (left_tree) left_tree->parent = nullptr;
+        if (right_tree) right_tree->parent = nullptr;
+        
+        // 3. 合并左右子树
+        if (!left_tree) {
+            // 如果没有左子树，直接使用右子树
+            root = right_tree;
+        } else {
+            // 找到左子树的最大节点并伸展到根
+            node* max_node = left_tree;
+            while (max_node->right) {
+                max_node = max_node->right;
+            }
+            splay(max_node);
+            
+            // 现在max_node是左子树的根，且没有右子树
+            max_node->right = right_tree;
+            if (right_tree) right_tree->parent = max_node;
+            
+            root = max_node;
         }
         
-        deallocate_node(z);
+        // 删除目标节点
+        deallocate_node(target);
         p_size--;
     }
 
@@ -224,6 +241,8 @@ public:
         y->right = x;
         x->parent = y; 
     }
+
+    // 改进splay操作，添加调试信息
     void splay(node *x) {
         if (!x) return;
         
@@ -283,46 +302,44 @@ public:
     }
 
 public:
-    // 拆分操作：将树拆分为两棵子树，一棵包含小于等于key的节点，另一棵包含大于key的节点
+    // 重写拆分操作
     std::pair<SplayTree*, SplayTree*> split(const T& key) {
         if (!root) return {new SplayTree(), new SplayTree()};
 
-        // 找到拆分点并旋转到根
-        find(key);  // 这会将最接近key的节点旋转到根
-        
+        // 1. 先将最接近key的节点旋转到根
+        find(key);  
+
+        // 创建两棵新树
         SplayTree* left = new SplayTree();
         SplayTree* right = new SplayTree();
-        
-        if (!root || comp(root->key, key)) {
-            // 当前根节点及其左子树属于左树
+
+        // 修改判断逻辑：确保拆分值在左子树
+        if (!comp(key, root->key)) {  // 如果 key >= root->key
+            // 根节点及其左子树归入左子树
             left->root = root;
-            if (root && root->right) {
+            if (root->right) {
                 right->root = root->right;
                 root->right->parent = nullptr;
                 root->right = nullptr;
-                // 更新大小
-                right->p_size = countNodes(right->root);
-                left->p_size = p_size - right->p_size;
-            } else {
-                left->p_size = p_size;
             }
-        } else {
-            // 当前根节点及其右子树属于右树
+        } else {  // 如果 key < root->key
+            // 右子树和根节点归入右子树
             right->root = root;
             if (root->left) {
                 left->root = root->left;
                 root->left->parent = nullptr;
                 root->left = nullptr;
-                // 更新大小
-                left->p_size = countNodes(left->root);
-                right->p_size = p_size - left->p_size;
-            } else {
-                right->p_size = p_size;
             }
         }
-        
+
+        // 更新两棵子树的大小
+        if (left->root) left->p_size = countNodes(left->root);
+        if (right->root) right->p_size = countNodes(right->root);
+
+        // 清空原树
         root = nullptr;
         p_size = 0;
+
         return {left, right};
     }
 
@@ -474,7 +491,6 @@ private:
             y->left = z->left;
             y->left->parent = y;
         }
-
         deallocate_node(z); // 修复内存泄漏
         p_size--;
     }
