@@ -36,16 +36,16 @@ void TreeWidget::paintEvent(QPaintEvent* event) {
     
     // 设置渐变背景 - 使用更柔和的白色渐变
     QLinearGradient gradient(0, 0, width(), height());
-    gradient.setColorAt(0, QColor(252, 253, 255));
-    gradient.setColorAt(1, QColor(246, 247, 251));
+    gradient.setColorAt(0, QColor(255, 255, 255));
+    gradient.setColorAt(1, QColor(248, 250, 252));
     painter.fillRect(rect(), gradient);
 
     // 添加更淡的网格线
-    painter.setPen(QPen(QColor(238, 240, 245), 1, Qt::DotLine));
-    for(int i = 0; i < width(); i += 40) {
+    painter.setPen(QPen(QColor(240, 242, 245), 1, Qt::DotLine));
+    for(int i = 0; i < width(); i += 50) {
         painter.drawLine(i, 0, i, height());
     }
-    for(int i = 0; i < height(); i += 40) {
+    for(int i = 0; i < height(); i += 50) {
         painter.drawLine(0, i, width(), i);
     }
 
@@ -116,26 +116,28 @@ void TreeWidget::drawNode(QPainter& painter,
     
     // 先绘制连线
     if (node->left || node->right) {
-        // 设置连线样式 - 使用更柔和的蓝灰色
-        QPen linePen(QColor(145, 158, 171, 140), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+        // 增加线条宽度和对比度
+        QPen linePen;
         if (isRecentlyRotated) {
-            linePen.setColor(QColor(33, 150, 243)); // 使用突出的蓝色
+            linePen = QPen(QColor(33, 150, 243), 3.5); // 加粗的蓝色，更明显
+        } else {
+            linePen = QPen(QColor(52, 73, 94), 3.0); // 加粗的深灰色，提高对比度
         }
+        linePen.setCapStyle(Qt::RoundCap);
+        linePen.setJoinStyle(Qt::RoundJoin);
         painter.setPen(linePen);
         
         if (node->left) {
             int childX = relX - horizontalSpacing;
             int childY = relY + VERTICAL_SPACING;
             
-            // 计算控制点 - 采用更自然的曲线
-            int midY = relY + VERTICAL_SPACING * 0.5;
-            
+            // 创建更明显的连线
             QPainterPath path;
             path.moveTo(relX + NODE_SIZE/2, relY + NODE_SIZE/2);
-            // 使用更短的贝塞尔曲线控制点，让曲线更自然
-            path.quadTo(
-                relX + NODE_SIZE/2, midY,  // 控制点
-                childX + NODE_SIZE/2, childY + NODE_SIZE/2  // 终点
+            path.cubicTo(
+                relX + NODE_SIZE/2, relY + NODE_SIZE + 10,        // 第一个控制点
+                childX + NODE_SIZE/2, childY - 30,                // 第二个控制点
+                childX + NODE_SIZE/2, childY + NODE_SIZE/2        // 终点
             );
             
             painter.drawPath(path);
@@ -146,14 +148,13 @@ void TreeWidget::drawNode(QPainter& painter,
             int childX = relX + horizontalSpacing;
             int childY = relY + VERTICAL_SPACING;
             
-            // 对称处理右侧连线
-            int midY = relY + VERTICAL_SPACING * 0.5;
-            
+            // 创建更明显的连线
             QPainterPath path;
             path.moveTo(relX + NODE_SIZE/2, relY + NODE_SIZE/2);
-            path.quadTo(
-                relX + NODE_SIZE/2, midY,
-                childX + NODE_SIZE/2, childY + NODE_SIZE/2
+            path.cubicTo(
+                relX + NODE_SIZE/2, relY + NODE_SIZE + 10,        // 第一个控制点
+                childX + NODE_SIZE/2, childY - 30,                // 第二个控制点
+                childX + NODE_SIZE/2, childY + NODE_SIZE/2        // 终点
             );
             
             painter.drawPath(path);
@@ -161,47 +162,52 @@ void TreeWidget::drawNode(QPainter& painter,
         }
     }
 
-    // 绘制节点
+    // 增强节点样式
     QColor nodeColor;
     if (isRecentlyRotated) {
-        // 使用动画颜色
         int alpha = qMax(0, 255 - (int)(m_lastRotation.elapsed() / 4));
-        nodeColor = QColor(33, 150, 243, alpha); // Material Blue
+        nodeColor = QColor(52, 152, 219, alpha); // 蓝色
     } else if (m_tree && node == m_tree->root) {
-        nodeColor = QColor(25, 118, 210); // 根节点颜色
+        nodeColor = QColor(41, 128, 185); // 更深的蓝色
     } else {
-        nodeColor = QColor(0, 151, 167); // 普通节点颜色
+        nodeColor = QColor(26, 188, 156); // 绿松石色
     }
 
     // 创建节点渐变
     QRadialGradient gradient(relX + NODE_SIZE/2, relY + NODE_SIZE/2,
                             NODE_SIZE/2);
-    gradient.setColorAt(0, nodeColor.lighter(120));
+    gradient.setColorAt(0, nodeColor.lighter(130));
     gradient.setColorAt(1, nodeColor);
     
-    painter.setBrush(gradient);
-    painter.setPen(QPen(nodeColor.darker(120), 2));
-    
-    // 添加非常柔和的阴影效果
+    // 美化节点效果
     painter.save();
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(0, 0, 0, 15));
-    painter.drawEllipse(relX + 3, relY + 3, NODE_SIZE, NODE_SIZE);
-    painter.restore();
     
-    // 绘制节点主体
+    // 添加阴影
+    QColor shadowColor(0, 0, 0, 30);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(shadowColor);
+    painter.drawEllipse(relX + 4, relY + 4, NODE_SIZE, NODE_SIZE);
+    
+    painter.setBrush(gradient);
+    painter.setPen(QPen(nodeColor.darker(110), 2));
+    
+    // 绘制主节点
     painter.drawEllipse(relX, relY, NODE_SIZE, NODE_SIZE);
     
-    // 优化文字显示 - 使用更明亮的白色
-    painter.setPen(QColor(255, 255, 255, 240));
-    painter.setFont(QFont("Microsoft YaHei", 12, QFont::Bold));
+    // 添加内层亮环，提升3D效果
+    QPen innerRingPen(QColor(255, 255, 255, 100), 2);
+    painter.setPen(innerRingPen);
+    painter.drawEllipse(relX + 5, relY + 5, NODE_SIZE - 10, NODE_SIZE - 10);
+    
+    // 优化文字效果
+    painter.setPen(QColor(255, 255, 255));
+    QFont nodeFont("Microsoft YaHei", 14, QFont::Bold);
+    painter.setFont(nodeFont);
     painter.drawText(QRect(relX, relY, NODE_SIZE, NODE_SIZE),
                     Qt::AlignCenter,
                     QString::number(node->key));
                     
-    // 添加更细腻的高光效果
-    painter.setPen(QPen(QColor(255, 255, 255, 40), 1));
-    painter.drawArc(QRectF(relX + 5, relY + 5, NODE_SIZE - 10, NODE_SIZE - 10), 45 * 16, 180 * 16);
+    painter.restore();
     
     // 递归绘制子节点
     if (node->left) {

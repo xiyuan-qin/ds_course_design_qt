@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>800</width>
+    <width>900</width>
     <height>600</height>
    </size>
   </property>
@@ -22,53 +22,80 @@
   <property name="styleSheet">
    <string>
     QMainWindow {
-      background-color: #f5f6fa;
+      background-color: #f5f7fa;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
     }
     QPushButton {
-      padding: 8px 16px;
-      background-color: #1976D2;  /* Material Blue 700 */
-      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      color: white;
     }
     QPushButton:hover {
-      background-color: #1E88E5;  /* Material Blue 600 */
+      transform: translateY(-2px);
     }
     QPushButton:pressed {
-      background-color: #1565C0;  /* Material Blue 800 */
+      transform: translateY(1px);
     }
-    QPushButton:disabled {
-      background-color: #90CAF9;  /* Material Blue 200 */
-    }
-    
     QLineEdit {
-      padding: 6px 12px;
-      border: 2px solid #E3F2FD;  /* Material Blue 50 */
-      border-radius: 6px;
+      padding: 10px 16px;
+      border: 2px solid #e1e5eb;
+      border-radius: 8px;
       background-color: white;
-      color: #1565C0;  /* Material Blue 800 */
+      color: #2d3436;
+      font-size: 14px;
     }
     QLineEdit:focus {
-      border-color: #2196F3;  /* Material Blue 500 */
+      border-color: #3498db;
     }
-    
     QTextBrowser {
       background-color: white;
-      border: 2px solid #E3F2FD;
-      border-radius: 6px;
+      border: 2px solid #e1e5eb;
+      border-radius: 8px;
       padding: 12px;
-      color: #1565C0;
+      color: #2d3436;
+      font-size: 13px;
     }
    </string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
+     <number>12</number>
+    </property>
+    <property name="leftMargin">
      <number>16</number>
     </property>
-    <property name="margin">
-     <number>20</number>
+    <property name="topMargin">
+     <number>16</number>
     </property>
+    <property name="rightMargin">
+     <number>16</number>
+    </property>
+    <property name="bottomMargin">
+     <number>16</number>
+    </property>
+    <item>
+     <widget class="QLabel" name="titleLabel">
+      <property name="text">
+       <string>伸展树可视化演示</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="styleSheet">
+       <string>
+        QLabel {
+          font-size: 24px;
+          font-weight: bold;
+          color: #2c3e50;
+          margin-bottom: 10px;
+        }
+       </string>
+      </property>
+     </widget>
+    </item>
     <item>
      <widget class="TreeWidget" name="treeWidget">
       <property name="sizePolicy">
@@ -78,24 +105,24 @@
        </sizepolicy>
       </property>
       <property name="minimumHeight">
-       <number>500</number>
+       <number>550</number>
       </property>
       <property name="styleSheet">
        <string>
         QWidget { 
           background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                    stop:0 #ffffff, stop:1 #f0f2f5);
-          border: 2px solid #e8e8e8;
-          border-radius: 8px;
+                                    stop:0 #ffffff, stop:1 #f8fafc);
+          border: 2px solid #e3e9f3;
+          border-radius: 12px;
         }
        </string>
       </property>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="controlLayout">
+     <layout class="QHBoxLayout" name="controlsMainLayout">
       <property name="spacing">
-       <number>12</number>
+       <number>10</number>
       </property>
       <item>
        <widget class="QLineEdit" name="lineEdit">
@@ -106,231 +133,166 @@
          <number>6</number>
         </property>
         <property name="minimumHeight">
-         <number>36</number>
+         <number>40</number>
+        </property>
+        <property name="maximumWidth">
+         <number>150</number>
         </property>
         <property name="font">
          <font>
           <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
+          <pointsize>11</pointsize>
          </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QLineEdit {
-            padding: 6px 12px;
-            border: 2px solid #E3F2FD;  /* Material Blue 50 */
-            border-radius: 6px;
-            background-color: white;
-            color: #1565C0;  /* Material Blue 800 */
-          }
-          QLineEdit:focus {
-            border-color: #2196F3;  /* Material Blue 500 */
-          }
-         </string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="insertButton">
-        <property name="text">
-         <string>插入</string>
+       <layout class="QHBoxLayout" name="operationButtonsLayout">
+        <property name="spacing">
+         <number>8</number>
         </property>
-        <property name="minimumHeight">
-         <number>36</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #1976D2;  /* Material Blue 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #1E88E5;  /* Material Blue 600 */
-          }
-          QPushButton:pressed {
-            background-color: #1565C0;  /* Material Blue 800 */
-          }
-          QPushButton:disabled {
-            background-color: #90CAF9;  /* Material Blue 200 */
-          }
-         </string>
-        </property>
-       </widget>
+        <item>
+         <widget class="QPushButton" name="insertButton">
+          <property name="text">
+           <string>插入</string>
+          </property>
+          <property name="minimumHeight">
+           <number>40</number>
+          </property>
+          <property name="maximumWidth">
+           <number>80</number>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>
+            background-color: #3498db;
+           </string>
+          </property>
+          <property name="icon">
+           <iconset theme="list-add"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="deleteButton">
+          <property name="text">
+           <string>删除</string>
+          </property>
+          <property name="minimumHeight">
+           <number>40</number>
+          </property>
+          <property name="maximumWidth">
+           <number>80</number>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>
+            background-color: #e74c3c;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="searchButton">
+          <property name="text">
+           <string>查找</string>
+          </property>
+          <property name="minimumHeight">
+           <number>40</number>
+          </property>
+          <property name="maximumWidth">
+           <number>80</number>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>
+            background-color: #9b59b6;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="splitButton">
+          <property name="text">
+           <string>拆分</string>
+          </property>
+          <property name="minimumHeight">
+           <number>40</number>
+          </property>
+          <property name="maximumWidth">
+           <number>80</number>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>
+            background-color: #f39c12;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="mergeButton">
+          <property name="text">
+           <string>合并</string>
+          </property>
+          <property name="minimumHeight">
+           <number>40</number>
+          </property>
+          <property name="maximumWidth">
+           <number>80</number>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>
+            background-color: #2ecc71;
+           </string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item>
-       <widget class="QPushButton" name="deleteButton">
-        <property name="text">
-         <string>删除</string>
-        </property>
-        <property name="minimumHeight">
-         <number>36</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #1976D2;  /* Material Blue 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #1E88E5;  /* Material Blue 600 */
-          }
-          QPushButton:pressed {
-            background-color: #1565C0;  /* Material Blue 800 */
-          }
-          QPushButton:disabled {
-            background-color: #90CAF9;  /* Material Blue 200 */
-          }
-         </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="searchButton">
-        <property name="text">
-         <string>查找</string>
-        </property>
-        <property name="minimumHeight">
-         <number>36</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #1976D2;  /* Material Blue 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #1E88E5;  /* Material Blue 600 */
-          }
-          QPushButton:pressed {
-            background-color: #1565C0;  /* Material Blue 800 */
-          }
-          QPushButton:disabled {
-            background-color: #90CAF9;  /* Material Blue 200 */
-          }
-         </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="splitButton">
-        <property name="text">
-         <string>拆分</string>
-        </property>
-        <property name="minimumHeight">
-         <number>36</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #1976D2;  /* Material Blue 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #1E88E5;  /* Material Blue 600 */
-          }
-          QPushButton:pressed {
-            background-color: #1565C0;  /* Material Blue 800 */
-          }
-          QPushButton:disabled {
-            background-color: #90CAF9;  /* Material Blue 200 */
-          }
-         </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="mergeButton">
-        <property name="text">
-         <string>合并</string>
-        </property>
-        <property name="minimumHeight">
-         <number>36</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #1976D2;  /* Material Blue 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #1E88E5;  /* Material Blue 600 */
-          }
-          QPushButton:pressed {
-            background-color: #1565C0;  /* Material Blue 800 */
-          }
-          QPushButton:disabled {
-            background-color: #90CAF9;  /* Material Blue 200 */
-          }
-         </string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="extraControlsLayout">
-      <property name="spacing">
-       <number>12</number>
-      </property>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::MinimumExpanding</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -343,34 +305,26 @@
       <item>
        <widget class="QPushButton" name="clearButton">
         <property name="text">
-         <string>清空树</string>
+         <string>清空</string>
         </property>
         <property name="minimumHeight">
-         <number>36</number>
+         <number>40</number>
+        </property>
+        <property name="maximumWidth">
+         <number>80</number>
         </property>
         <property name="font">
          <font>
           <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
+          <pointsize>11</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
         <property name="styleSheet">
          <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #F44336;  /* Material Red */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #EF5350;  /* Lighter Red */
-          }
-          QPushButton:pressed {
-            background-color: #D32F2F;  /* Darker Red */
-          }
+          background-color: #e74c3c;
+          border-radius: 8px;
          </string>
         </property>
        </widget>
@@ -378,34 +332,26 @@
       <item>
        <widget class="QPushButton" name="exitButton">
         <property name="text">
-         <string>退出程序</string>
+         <string>退出</string>
         </property>
         <property name="minimumHeight">
-         <number>36</number>
+         <number>40</number>
+        </property>
+        <property name="maximumWidth">
+         <number>80</number>
         </property>
         <property name="font">
          <font>
           <family>Microsoft YaHei</family>
-          <pointsize>10</pointsize>
+          <pointsize>11</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
         <property name="styleSheet">
          <string>
-          QPushButton {
-            padding: 8px 16px;
-            background-color: #455A64;  /* Material Blue Grey 700 */
-            color: white;
-            border: none;
-            border-radius: 6px;
-          }
-          QPushButton:hover {
-            background-color: #546E7A;  /* Blue Grey 600 */
-          }
-          QPushButton:pressed {
-            background-color: #37474F;  /* Blue Grey 800 */
-          }
+          background-color: #34495e;
+          border-radius: 8px;
          </string>
         </property>
        </widget>
@@ -415,16 +361,20 @@
     <item>
      <widget class="QTextBrowser" name="textBrowser">
       <property name="maximumHeight">
-       <number>120</number>
+       <number>100</number>
+      </property>
+      <property name="minimumHeight">
+       <number>100</number>
       </property>
       <property name="styleSheet">
        <string>
         QTextBrowser {
           background-color: white;
-          border: 2px solid #E3F2FD;
-          border-radius: 6px;
+          border: 2px solid #e1e5eb;
+          border-radius: 8px;
           padding: 12px;
-          color: #1565C0;
+          color: #2d3436;
+          font-size: 13px;
         }
        </string>
       </property>
@@ -436,10 +386,12 @@
    <property name="styleSheet">
     <string>
      QStatusBar {
-       background-color: #ffffff;
-       color: #2f3542;
-       padding: 4px;
+       background-color: #f8fafc;
+       color: #2c3e50;
+       padding: 6px;
        font-family: "Microsoft YaHei";
+       font-size: 13px;
+       border-top: 1px solid #e3e9f3;
      }
     </string>
    </property>
