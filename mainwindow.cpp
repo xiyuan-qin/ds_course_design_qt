@@ -258,51 +258,123 @@ void MainWindow::onMergeClicked() {
 
 // 新增清空树的槽函数实现
 void MainWindow::onClearClicked() {
-    // 确认对话框
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "确认操作", 
-                                 "确定要清空当前树吗？此操作无法撤销。",
-                                 QMessageBox::Yes | QMessageBox::No);
-                                 
-    if (reply != QMessageBox::Yes) {
-        return;
-    }
+    // 创建一个自定义的确认对话框
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("确认操作");
+    msgBox.setText("确定要清空当前树吗？此操作无法撤销。");
+    msgBox.setIcon(QMessageBox::Warning);
     
-    // 清空当前树
-    if (m_isInSplitState) {
-        // 如果处于分裂状态，先清理分裂的树
-        cleanup_split_state();
-        m_isInSplitState = false;
-    }
+    // 自定义按钮
+    QPushButton *yesButton = msgBox.addButton("确定清空", QMessageBox::YesRole);
+    QPushButton *noButton = msgBox.addButton("取消", QMessageBox::NoRole);
     
-    // 清空主树
-    if (m_tree.root) {
-        m_tree.clear(m_tree.root);
-        m_tree.root = nullptr;
-        m_tree.p_size = 0;
+    // 设置按钮样式
+    yesButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #e74c3c;"
+        "   color: white;"
+        "   font-weight: bold;"
+        "   padding: 6px 20px;"
+        "   border-radius: 4px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #c0392b;"
+        "}"
+    );
+    
+    noButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #3498db;"
+        "   color: white;"
+        "   padding: 6px 20px;"
+        "   border-radius: 4px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #2980b9;"
+        "}"
+    );
+    
+    // 设置默认按钮为取消
+    msgBox.setDefaultButton(noButton);
+    
+    // 执行对话框
+    msgBox.exec();
+    
+    // 如果选择了确定清空
+    if (msgBox.clickedButton() == yesButton) {
+        // 清空当前树
+        if (m_isInSplitState) {
+            // 如果处于分裂状态，先清理分裂的树
+            cleanup_split_state();
+            m_isInSplitState = false;
+        }
         
-        // 强制垃圾回收
-        SplayTree<int>::cleanup_unused();
-        
-        // 更新界面
-        ui->treeWidget->setTree(&m_tree);
-        updateTreeDisplay();
-        
-        ui->textBrowser->append("已清空所有节点");
-    } else {
-        ui->textBrowser->append("树已为空");
+        // 清空主树
+        if (m_tree.root) {
+            m_tree.clear(m_tree.root);
+            m_tree.root = nullptr;
+            m_tree.p_size = 0;
+            
+            // 强制垃圾回收
+            SplayTree<int>::cleanup_unused();
+            
+            // 更新界面
+            ui->treeWidget->setTree(&m_tree);
+            updateTreeDisplay();
+            
+            ui->textBrowser->append("已清空所有节点");
+        } else {
+            ui->textBrowser->append("树已为空");
+        }
     }
 }
 
 // 新增退出程序的槽函数实现
 void MainWindow::onExitClicked() {
-    // 确认对话框
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "确认退出", 
-                                 "确定要退出程序吗？",
-                                 QMessageBox::Yes | QMessageBox::No);
-                                 
-    if (reply == QMessageBox::Yes) {
+    // 创建一个自定义的确认对话框
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("确认退出");
+    msgBox.setText("确定要退出程序吗？");
+    msgBox.setIcon(QMessageBox::Question);
+    
+    // 自定义按钮
+    QPushButton *yesButton = msgBox.addButton("确定退出", QMessageBox::YesRole);
+    QPushButton *noButton = msgBox.addButton("取消", QMessageBox::NoRole);
+    
+    // 设置按钮样式
+    yesButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #e74c3c;"
+        "   color: white;"
+        "   font-weight: bold;"
+        "   padding: 6px 20px;"
+        "   border-radius: 4px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #c0392b;"
+        "}"
+    );
+    
+    noButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #3498db;"
+        "   color: white;"
+        "   padding: 6px 20px;"
+        "   border-radius: 4px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #2980b9;"
+        "}"
+    );
+    
+    // 设置默认按钮为取消
+    msgBox.setDefaultButton(noButton);
+    
+    // 执行对话框
+    msgBox.exec();
+    
+    // 如果选择了确定退出
+    if (msgBox.clickedButton() == yesButton) {
         QApplication::quit();
     }
 }
