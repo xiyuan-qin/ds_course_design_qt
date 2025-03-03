@@ -11,7 +11,7 @@ public:
     struct node {
         node *left = nullptr;
         node *right = nullptr;
-        node *parent = nullptr;
+        node *parent = nullptr;// 为了方便找到父节点，因为旋转后父节点向下指的指针会变
         T key;
         size_t ref_count = 0;
         
@@ -62,7 +62,7 @@ public:
 public:
     // 基本属性
     Comp comp;
-    unsigned long p_size;
+    unsigned long p_size;// 节点数量
     node* root;
 
     // 构造和析构函数
@@ -131,9 +131,9 @@ public:
         
         while (z) {
             p = z;
-            if (comp(key, z->key))
+            if (comp(key, z->key))// key < z->key
                 z = z->left;
-            else if (comp(z->key, key))
+            else if (comp(z->key, key))// key > z->key
                 z = z->right;
             else {
                 splay(z);  // 如果找到相同的键，将其旋转到根
@@ -154,7 +154,7 @@ public:
         p_size++;
     }
 
-    // 修改查找函数，始终将最后访问的节点伸展到根
+    // 查找函数，始终将最后访问的节点伸展到根
     node* find(const T &key) {
         if (!root) return nullptr;
         
@@ -220,29 +220,35 @@ public:
     void left_rotate(node *x) { 
         node *y = x->right;
         x->right = y->left;
+
         if( y->left ) y->left->parent = x;
+
         y->parent = x->parent;
         if( x->parent ) {
             if( x == x->parent->left ) x->parent->left = y;
             else x->parent->right = y;
         }
+
         y->left = x;
         x->parent = y;
     }
     void right_rotate(node *x) { 
         node *y = x->left;
         x->left = y->right;
+
         if( y->right ) y->right->parent = x;
+
         y->parent = x->parent;
         if( x->parent ) {
             if( x == x->parent->left ) x->parent->left = y;
             else x->parent->right = y;
         }
+
         y->right = x;
         x->parent = y; 
     }
 
-    // 改进splay操作，添加调试信息
+    // 伸展操作
     void splay(node *x) {
         if (!x) return;
         
@@ -256,24 +262,24 @@ public:
                 else
                     left_rotate(p);
             }
-            else if (g->left == p && p->left == x) {  // Zig-Zig
+            else if (g->left == p && p->left == x) {  // Zig-Zig，左子树的左子树
                 right_rotate(g);
                 right_rotate(p);
             }
-            else if (g->right == p && p->right == x) {  // Zig-Zig
+            else if (g->right == p && p->right == x) {  // Zig-Zig，右子树的右子树
                 left_rotate(g);
                 left_rotate(p);
             }
-            else if (g->left == p && p->right == x) {  // Zig-Zag
+            else if (g->left == p && p->right == x) {  // Zig-Zag， 左子树的右子树
                 left_rotate(p);
                 right_rotate(g);
             }
-            else {  // Zig-Zag
+            else {  // Zig-Zag，右子树的左子树
                 right_rotate(p);
                 left_rotate(g);
             }
         }
-        root = x;  // 确保根节点更新
+        root = x;  // 每次旋转后，x都会变成根节点
     }
 
     // 辅助函数
@@ -371,7 +377,7 @@ public:
         // 验证合并条件
         node* max_node = t1->subtree_maximum(t1->root);
         node* min_node = t2->subtree_minimum(t2->root);
-        if (!(t1->comp(max_node->key, min_node->key))) {
+        if (!(t1->comp(max_node->key, min_node->key))) {// 左边最大的比右边的最小的大
             delete t1;
             delete t2;
             return nullptr;
