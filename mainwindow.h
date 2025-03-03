@@ -22,6 +22,8 @@ private slots:
     void onSearchClicked();
     void onSplitClicked();
     void onMergeClicked();
+    void onClearClicked();  // 新增清空树的槽函数
+    void onExitClicked();   // 新增退出程序的槽函数
 
 private:
     void cleanup_split_state();  // 只声明，不实现

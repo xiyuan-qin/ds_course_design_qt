@@ -323,6 +323,96 @@
      </layout>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="extraControlsLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="clearButton">
+        <property name="text">
+         <string>清空树</string>
+        </property>
+        <property name="minimumHeight">
+         <number>36</number>
+        </property>
+        <property name="font">
+         <font>
+          <family>Microsoft YaHei</family>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string>
+          QPushButton {
+            padding: 8px 16px;
+            background-color: #F44336;  /* Material Red */
+            color: white;
+            border: none;
+            border-radius: 6px;
+          }
+          QPushButton:hover {
+            background-color: #EF5350;  /* Lighter Red */
+          }
+          QPushButton:pressed {
+            background-color: #D32F2F;  /* Darker Red */
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="exitButton">
+        <property name="text">
+         <string>退出程序</string>
+        </property>
+        <property name="minimumHeight">
+         <number>36</number>
+        </property>
+        <property name="font">
+         <font>
+          <family>Microsoft YaHei</family>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string>
+          QPushButton {
+            padding: 8px 16px;
+            background-color: #455A64;  /* Material Blue Grey 700 */
+            color: white;
+            border: none;
+            border-radius: 6px;
+          }
+          QPushButton:hover {
+            background-color: #546E7A;  /* Blue Grey 600 */
+          }
+          QPushButton:pressed {
+            background-color: #37474F;  /* Blue Grey 800 */
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QTextBrowser" name="textBrowser">
       <property name="maximumHeight">
        <number>120</number>

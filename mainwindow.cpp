@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::onSearchClicked);
     connect(ui->splitButton, &QPushButton::clicked, this, &MainWindow::onSplitClicked);
     connect(ui->mergeButton, &QPushButton::clicked, this, &MainWindow::onMergeClicked);
+    connect(ui->clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);  // 连接清空树按钮
+    connect(ui->exitButton, &QPushButton::clicked, this, &MainWindow::onExitClicked);    // 连接退出按钮
     
     // 添加回车键支持
     connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::onInsertClicked);
@@ -94,6 +96,9 @@ void MainWindow::onDeleteClicked() {
     
     int newRootVal = m_tree.root ? m_tree.root->key : -1;
     
+    // 更新显示并触发动画
+    ui->treeWidget->setTree(&m_tree);
+    
     if (oldRootVal == val) {
         ui->textBrowser->append(QString("已删除节点 %1").arg(val));
     } else if (oldRootVal != newRootVal) {
@@ -103,7 +108,9 @@ void MainWindow::onDeleteClicked() {
         ui->textBrowser->append(QString("未找到节点 %1，树为空或无需旋转").arg(val));
     }
     
+    // 强制更新显示并添加延迟更新以确保动画效果
     updateTreeDisplay();
+    QTimer::singleShot(50, this, &MainWindow::updateTreeDisplay);
 }
 
 void MainWindow::onSearchClicked() {
@@ -249,6 +256,57 @@ void MainWindow::onMergeClicked() {
     });
 }
 
+// 新增清空树的槽函数实现
+void MainWindow::onClearClicked() {
+    // 确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认操作", 
+                                 "确定要清空当前树吗？此操作无法撤销。",
+                                 QMessageBox::Yes | QMessageBox::No);
+                                 
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+    
+    // 清空当前树
+    if (m_isInSplitState) {
+        // 如果处于分裂状态，先清理分裂的树
+        cleanup_split_state();
+        m_isInSplitState = false;
+    }
+    
+    // 清空主树
+    if (m_tree.root) {
+        m_tree.clear(m_tree.root);
+        m_tree.root = nullptr;
+        m_tree.p_size = 0;
+        
+        // 强制垃圾回收
+        SplayTree<int>::cleanup_unused();
+        
+        // 更新界面
+        ui->treeWidget->setTree(&m_tree);
+        updateTreeDisplay();
+        
+        ui->textBrowser->append("已清空所有节点");
+    } else {
+        ui->textBrowser->append("树已为空");
+    }
+}
+
+// 新增退出程序的槽函数实现
+void MainWindow::onExitClicked() {
+    // 确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认退出", 
+                                 "确定要退出程序吗？",
+                                 QMessageBox::Yes | QMessageBox::No);
+                                 
+    if (reply == QMessageBox::Yes) {
+        QApplication::quit();
+    }
+}
+
 // 新增：控制UI元素启用状态的辅助函数
 void MainWindow::setControlsEnabled(bool enabled) {
     ui->insertButton->setEnabled(enabled);
@@ -256,6 +314,8 @@ void MainWindow::setControlsEnabled(bool enabled) {
     ui->searchButton->setEnabled(enabled);
     ui->splitButton->setEnabled(enabled);
     ui->mergeButton->setEnabled(enabled);
+    ui->clearButton->setEnabled(enabled);  // 添加清空树按钮的控制
+    ui->exitButton->setEnabled(enabled);   // 添加退出按钮的控制
     ui->lineEdit->setEnabled(enabled);
 }
 
