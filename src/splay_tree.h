@@ -117,9 +117,14 @@ public:
         p_size = 0;
     }
 
-    // 核心接口
+    
+    /**
+     * 插入操作 - 时间复杂度: 平摊 O(log n)，树高
+     * 最坏情况: O(n)，当树完全不平衡时
+     * 平摊分析: 通过伸展操作，频繁访问的节点会被移动到靠近根部的位置，从而优化后续访问
+     */
     void insert(const T &key) {
-        if (!root) {
+        if (!root) {// 树为空
             root = allocate_node(key);
             if (!root) return;  // 内存池已满
             p_size++;
@@ -130,7 +135,7 @@ public:
         node *p = nullptr;
         
         while (z) {
-            p = z;
+            p = z;// p是父节点
             if (comp(key, z->key))// key < z->key
                 z = z->left;
             else if (comp(z->key, key))// key > z->key
@@ -141,7 +146,7 @@ public:
             }
         }
         
-        z = allocate_node(key);
+        z = allocate_node(key);// 分配一个内存，并创建一个对象
         if (!z) return;  // 内存池已满
         z->parent = p;
         
@@ -150,11 +155,16 @@ public:
         else
             p->right = z;
         
-        splay(z);
+        splay(z);// 把插入后的节点旋上去
         p_size++;
     }
 
-    // 查找函数，始终将最后访问的节点伸展到根
+    /**
+     * 查找操作 - 时间复杂度: 平摊 O(log n) 树高
+     * 最坏情况: O(n)，当树完全不平衡时
+     * 查找后会进行伸展操作，将查找的节点或最后访问的节点移到根部
+     * 这种自调整特性使得频繁访问的元素查找效率更高
+     */
     node* find(const T &key) {
         if (!root) return nullptr;
         
@@ -163,9 +173,9 @@ public:
         
         while (current) {
             last_accessed = current;
-            if (comp(current->key, key)) {
+            if (comp(current->key, key)) { // current -> key < key
                 current = current->right;
-            } else if (comp(key, current->key)) {
+            } else if (comp(key, current->key)) {// current -> key > key
                 current = current->left;
             } else {
                 splay(current);
@@ -178,7 +188,13 @@ public:
         return nullptr;
     }
 
-    // 重写删除逻辑
+    /**
+     * 删除操作 - 时间复杂度: 平摊 O(log n)
+     * 最坏情况: O(n)，当树完全不平衡时
+     * 1. 先通过find操作将目标节点伸展到根部 - O(log n)
+     * 2. 分裂为左右子树 - O(1)
+     * 3. 合并左右子树 - O(log n)
+     */
     void erase(const T &key) {
         // 1. 查找目标节点并伸展到根
         node* target = find(key);
@@ -216,8 +232,11 @@ public:
         p_size--;
     }
 
-    // 树操作
-    void left_rotate(node *x) { 
+    /**
+     * 左旋转操作 - 时间复杂度: O(1)
+     * 执行常数时间的指针修改
+     */
+    void left_rotate(node *x) { //把这个节点左旋下去
         node *y = x->right;
         x->right = y->left;
 
@@ -232,7 +251,11 @@ public:
         y->left = x;
         x->parent = y;
     }
-    void right_rotate(node *x) { 
+    /**
+     * 右旋转操作 - 时间复杂度: O(1)
+     * 执行常数时间的指针修改
+     */
+    void right_rotate(node *x) { // 把这个节点右旋下去
         node *y = x->left;
         x->left = y->right;
 
@@ -248,7 +271,11 @@ public:
         x->parent = y; 
     }
 
-    // 伸展操作
+    /**
+     * 伸展操作 - 时间复杂度: 平摊 O(log n)
+     * 最坏情况: O(n)，当树完全不平衡时
+     * 平摊分析: 对于n次连续操作，总时间复杂度为O(n log n)，平均每次O(log n)
+     */
     void splay(node *x) {
         if (!x) return;
         
@@ -259,7 +286,7 @@ public:
             if (!g) {  // Zig
                 if (p->left == x)
                     right_rotate(p);
-                else
+                else   // zag
                     left_rotate(p);
             }
             else if (g->left == p && p->left == x) {  // Zig-Zig，左子树的左子树
@@ -308,7 +335,15 @@ public:
     }
 
 public:
-    // 重写拆分操作
+    // 拆分
+    /**
+     * 树的拆分操作 - 时间复杂度: O(log n)
+     * 1. 查找并伸展操作 - O(log n)
+     * 2. 分割为两棵树 - O(1)
+     * 
+     * 将树拆分为两棵子树，使得左子树中所有键值小于等于key，
+     * 右子树中所有键值大于key
+     */
     std::pair<SplayTree*, SplayTree*> split(const T& key) {
         if (!root) return {new SplayTree(), new SplayTree()};
 
@@ -319,7 +354,7 @@ public:
         SplayTree* left = new SplayTree();
         SplayTree* right = new SplayTree();
 
-        // 修改判断逻辑：确保拆分值在左子树
+        // 确保拆分值在左子树
         if (!comp(key, root->key)) {  // 如果 key >= root->key
             // 根节点及其左子树归入左子树
             left->root = root;
@@ -349,6 +384,14 @@ public:
         return {left, right};
     }
 
+    /**
+     * 树的合并操作 - 时间复杂度: O(log n)
+     * 1. 查找最大/最小节点 - O(log n)
+     * 2. 伸展操作 - O(log n)
+     * 3. 树的连接 - O(1)
+     * 
+     * 合并两棵树的前提是t1中的所有键值必须小于t2中的所有键值
+     */
     static SplayTree* merge(SplayTree* t1, SplayTree* t2) {
         // 空树快速处理
         if (!t1 || !t1->root) {
@@ -383,7 +426,7 @@ public:
             return nullptr;
         }
 
-        // 优化合并过程
+        // 合并过程
         auto* result = new SplayTree();
         t1->splay(max_node);  // 将最大节点旋转到根
         
@@ -427,7 +470,7 @@ private:
         decrease_ref_counts(n->right);
     }
 
-    // 新增：批量更新引用计数
+    // 批量更新引用计数
     void batch_update_ref_counts(node* n) {
         if (!n) return;
         
@@ -508,7 +551,7 @@ private:
 public: unsigned long size( ) const { return p_size; }
 
 public:
-    // 添加垃圾回收机制
+    // 垃圾回收
     static void cleanup() {
         for (auto* n : node_pool) {
             delete n;
@@ -516,7 +559,7 @@ public:
         node_pool.clear();
     }
 
-    // 添加容量检查
+    // 容量检查
     bool is_full() const {
         return node_pool.size() >= MAX_NODES;
     }

@@ -31,12 +31,15 @@
       border: none;
       border-radius: 8px;
       color: white;
+      transition: all 0.3s;
     }
     QPushButton:hover {
       transform: translateY(-2px);
+      opacity: 0.9;
     }
     QPushButton:pressed {
       transform: translateY(1px);
+      opacity: 0.7;
     }
     QLineEdit {
       padding: 10px 16px;
@@ -48,6 +51,7 @@
     }
     QLineEdit:focus {
       border-color: #3498db;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
     }
     QTextBrowser {
       background-color: white;
@@ -56,6 +60,24 @@
       padding: 12px;
       color: #2d3436;
       font-size: 13px;
+    }
+    QGroupBox {
+      font-size: 14px;
+      font-weight: bold;
+      border: 2px solid #e1e5eb;
+      border-radius: 10px;
+      margin-top: 1.5ex;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    QGroupBox::title {
+      subcontrol-origin: margin;
+      subcontrol-position: top center;
+      padding: 0 10px;
+      color: #2c3e50;
+      background-color: white;
+      border: 2px solid #e1e5eb;
+      border-radius: 5px;
     }
    </string>
   </property>
@@ -87,10 +109,14 @@
       <property name="styleSheet">
        <string>
         QLabel {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: bold;
           color: #2c3e50;
-          margin-bottom: 10px;
+          margin-bottom: 15px;
+          padding: 10px;
+          background-color: rgba(255, 255, 255, 0.8);
+          border-radius: 15px;
+          border-bottom: 3px solid #3498db;
         }
        </string>
       </property>
@@ -114,270 +140,320 @@
                                     stop:0 #ffffff, stop:1 #f8fafc);
           border: 2px solid #e3e9f3;
           border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
         }
        </string>
       </property>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="controlsMainLayout">
-      <property name="spacing">
-       <number>10</number>
+     <widget class="QGroupBox" name="controlsGroupBox">
+      <property name="title">
+       <string>操作控制面板</string>
       </property>
-      <item>
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="placeholderText">
-         <string>请输入数字...</string>
-        </property>
-        <property name="maxLength">
-         <number>6</number>
-        </property>
-        <property name="minimumHeight">
-         <number>40</number>
-        </property>
-        <property name="maximumWidth">
-         <number>150</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="operationButtonsLayout">
-        <property name="spacing">
-         <number>8</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="insertButton">
-          <property name="text">
-           <string>插入</string>
-          </property>
-          <property name="minimumHeight">
-           <number>40</number>
-          </property>
-          <property name="maximumWidth">
-           <number>80</number>
-          </property>
-          <property name="font">
-           <font>
-            <family>Microsoft YaHei</family>
-            <pointsize>11</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string>
-            background-color: #3498db;
-           </string>
-          </property>
-          <property name="icon">
-           <iconset theme="list-add"/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="deleteButton">
-          <property name="text">
-           <string>删除</string>
-          </property>
-          <property name="minimumHeight">
-           <number>40</number>
-          </property>
-          <property name="maximumWidth">
-           <number>80</number>
-          </property>
-          <property name="font">
-           <font>
-            <family>Microsoft YaHei</family>
-            <pointsize>11</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string>
-            background-color: #e74c3c;
-           </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="searchButton">
-          <property name="text">
-           <string>查找</string>
-          </property>
-          <property name="minimumHeight">
-           <number>40</number>
-          </property>
-          <property name="maximumWidth">
-           <number>80</number>
-          </property>
-          <property name="font">
-           <font>
-            <family>Microsoft YaHei</family>
-            <pointsize>11</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string>
-            background-color: #9b59b6;
-           </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="splitButton">
-          <property name="text">
-           <string>拆分</string>
-          </property>
-          <property name="minimumHeight">
-           <number>40</number>
-          </property>
-          <property name="maximumWidth">
-           <number>80</number>
-          </property>
-          <property name="font">
-           <font>
-            <family>Microsoft YaHei</family>
-            <pointsize>11</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string>
-            background-color: #f39c12;
-           </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="mergeButton">
-          <property name="text">
-           <string>合并</string>
-          </property>
-          <property name="minimumHeight">
-           <number>40</number>
-          </property>
-          <property name="maximumWidth">
-           <number>80</number>
-          </property>
-          <property name="font">
-           <font>
-            <family>Microsoft YaHei</family>
-            <pointsize>11</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string>
-            background-color: #2ecc71;
-           </string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::MinimumExpanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="clearButton">
-        <property name="text">
-         <string>清空</string>
-        </property>
-        <property name="minimumHeight">
-         <number>40</number>
-        </property>
-        <property name="maximumWidth">
-         <number>80</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>11</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          background-color: #e74c3c;
-          border-radius: 8px;
-         </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="exitButton">
-        <property name="text">
-         <string>退出</string>
-        </property>
-        <property name="minimumHeight">
-         <number>40</number>
-        </property>
-        <property name="maximumWidth">
-         <number>80</number>
-        </property>
-        <property name="font">
-         <font>
-          <family>Microsoft YaHei</family>
-          <pointsize>11</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string>
-          background-color: #34495e;
-          border-radius: 8px;
-         </string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      <layout class="QVBoxLayout" name="controlsGroupLayout">
+       <item>
+        <layout class="QHBoxLayout" name="operationsLayout">
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="placeholderText">
+            <string>请输入数字...</string>
+           </property>
+           <property name="maxLength">
+            <number>6</number>
+           </property>
+           <property name="minimumHeight">
+            <number>40</number>
+           </property>
+           <property name="maximumWidth">
+            <number>150</number>
+           </property>
+           <property name="font">
+            <font>
+             <family>Microsoft YaHei</family>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="operationButtonsLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="insertButton">
+             <property name="text">
+              <string>插入</string>
+             </property>
+             <property name="minimumHeight">
+              <number>40</number>
+             </property>
+             <property name="maximumWidth">
+              <number>80</number>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string>
+               background-color: #3498db;
+               border-left: 4px solid #2980b9;
+              </string>
+             </property>
+             <property name="icon">
+              <iconset theme="list-add"/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="deleteButton">
+             <property name="text">
+              <string>删除</string>
+             </property>
+             <property name="minimumHeight">
+              <number>40</number>
+             </property>
+             <property name="maximumWidth">
+              <number>80</number>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string>
+               background-color: #e74c3c;
+               border-left: 4px solid #c0392b;
+              </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="searchButton">
+             <property name="text">
+              <string>查找</string>
+             </property>
+             <property name="minimumHeight">
+              <number>40</number>
+             </property>
+             <property name="maximumWidth">
+              <number>80</number>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string>
+               background-color: #9b59b6;
+               border-left: 4px solid #8e44ad;
+              </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="splitButton">
+             <property name="text">
+              <string>拆分</string>
+             </property>
+             <property name="minimumHeight">
+              <number>40</number>
+             </property>
+             <property name="maximumWidth">
+              <number>80</number>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string>
+               background-color: #f39c12;
+               border-left: 4px solid #d35400;
+              </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="mergeButton">
+             <property name="text">
+              <string>合并</string>
+             </property>
+             <property name="minimumHeight">
+              <number>40</number>
+             </property>
+             <property name="maximumWidth">
+              <number>80</number>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string>
+               background-color: #2ecc71;
+               border-left: 4px solid #27ae60;
+              </string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="randomButton">
+           <property name="text">
+            <string>随机生成</string>
+           </property>
+           <property name="minimumHeight">
+            <number>40</number>
+           </property>
+           <property name="maximumWidth">
+            <number>100</number>
+           </property>
+           <property name="font">
+            <font>
+             <family>Microsoft YaHei</family>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string>
+             background-color: #1abc9c;
+             border-left: 4px solid #16a085;
+            </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::MinimumExpanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearButton">
+           <property name="text">
+            <string>清空</string>
+           </property>
+           <property name="minimumHeight">
+            <number>40</number>
+           </property>
+           <property name="maximumWidth">
+            <number>80</number>
+           </property>
+           <property name="font">
+            <font>
+             <family>Microsoft YaHei</family>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string>
+             background-color: #e74c3c;
+             border-radius: 8px;
+             border-left: 4px solid #c0392b;
+            </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exitButton">
+           <property name="text">
+            <string>退出</string>
+           </property>
+           <property name="minimumHeight">
+            <number>40</number>
+           </property>
+           <property name="maximumWidth">
+            <number>80</number>
+           </property>
+           <property name="font">
+            <font>
+             <family>Microsoft YaHei</family>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string>
+             background-color: #34495e;
+             border-radius: 8px;
+             border-left: 4px solid #2c3e50;
+            </string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
-     <widget class="QTextBrowser" name="textBrowser">
+     <widget class="QGroupBox" name="logGroupBox">
+      <property name="title">
+       <string>操作日志</string>
+      </property>
       <property name="maximumHeight">
-       <number>100</number>
+       <number>150</number>
       </property>
-      <property name="minimumHeight">
-       <number>100</number>
-      </property>
-      <property name="styleSheet">
-       <string>
-        QTextBrowser {
-          background-color: white;
-          border: 2px solid #e1e5eb;
-          border-radius: 8px;
-          padding: 12px;
-          color: #2d3436;
-          font-size: 13px;
-        }
-       </string>
-      </property>
+      <layout class="QVBoxLayout" name="logLayout">
+       <item>
+        <widget class="QTextBrowser" name="textBrowser">
+         <property name="styleSheet">
+          <string>
+           QTextBrowser {
+             background-color: white;
+             border: 2px solid #e1e5eb;
+             border-radius: 8px;
+             padding: 12px;
+             color: #2d3436;
+             font-size: 13px;
+           }
+          </string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -396,6 +472,85 @@
     </string>
    </property>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string>
+     QMenuBar {
+       background-color: #f8fafc;
+       border-bottom: 1px solid #e3e9f3;
+     }
+     QMenuBar::item {
+       padding: 6px 10px;
+       margin: 1px 3px;
+     }
+     QMenuBar::item:selected {
+       background-color: #3498db;
+       color: white;
+       border-radius: 4px;
+     }
+    </string>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="actionSave"/>
+    <addaction name="actionLoad"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>帮助</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionTutorial"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="actionSave">
+   <property name="text">
+    <string>保存树</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>加载树</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>退出</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>关于</string>
+   </property>
+  </action>
+  <action name="actionTutorial">
+   <property name="text">
+    <string>伸展树教程</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

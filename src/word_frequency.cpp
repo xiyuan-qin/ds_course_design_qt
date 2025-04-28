@@ -5,21 +5,38 @@
 #include <cctype>
 #include <algorithm>
 #include <iomanip>
-#include <numeric>  // 为 accumulate 添加头文件
-#include <cmath>   // 为 sqrt 添加头文件
+#include <numeric>  
+#include <cmath>   
 using namespace std;
 using namespace std::chrono;
 
-// 增加缓冲区大小
+/**
+ * 伸展树词频统计与性能测试程序
+ * 
+ * 目的：
+ * 1. 使用伸展树(Splay Tree)统计文本文件中单词出现的频率
+ * 2. 与普通二叉搜索树(BST)进行性能对比，验证伸展树在访问热点数据时的优势
+ * 3. 收集并分析树结构特性（平均深度、旋转次数等）
+ * 
+ * 主要测试内容：
+ * - 构建树的时间性能比较
+ * - 重复访问高频词的性能比较
+ * - 树结构特性（平均深度）的比较
+ */
+
+// 增加缓冲区大小，提高文件读取效率
 const int BUFFER_SIZE = 8192;
 
-// 伸展树节点
+/**
+ * 伸展树节点定义
+ * 包含键值、计数、左右子节点和父节点指针
+ */
 struct Node {
-    string key;
-    int count = 1;
-    Node* left = nullptr;
-    Node* right = nullptr;
-    Node* parent = nullptr;
+    string key;        // 单词
+    int count = 1;     // 出现次数
+    Node* left = nullptr;    // 左子节点
+    Node* right = nullptr;   // 右子节点
+    Node* parent = nullptr;  // 父节点（用于伸展操作）
 
     Node(const string& k) : key(k) {}
 };
@@ -27,11 +44,17 @@ struct Node {
 class SplayTree {
 private:
     Node* root = nullptr;
-    int operationCount = 0; // 记录旋转操作次数
-    int totalOperations = 0;  // 用于控制伸展频率
-    static const int SPLAY_THRESHOLD = 100;  // 伸展阈值
+    int operationCount = 0;    // 记录旋转操作次数，用于性能分析
+    int totalOperations = 0;   // 用于控制伸展频率
+    static const int SPLAY_THRESHOLD = 100;  // 伸展阈值，每100次操作才进行一次伸展，减少开销
 
-    // 改进的伸展策略：只在累计操作达到阈值时进行伸展
+    /**
+     * 条件伸展操作 - 优化策略
+     * 不是每次访问都伸展，而是每SPLAY_THRESHOLD次操作才伸展一次
+     * 这样可以减少频繁旋转带来的开销，同时保持伸展树的自调整特性
+     * 
+     * @param x 需要考虑伸展的节点
+     */
     void conditionalSplay(Node* x) {
         totalOperations++;
         if (totalOperations % SPLAY_THRESHOLD == 0) {
@@ -39,7 +62,13 @@ private:
         }
     }
 
-    // 优化的伸展操作
+    /**
+     * 伸展操作 - 将节点x旋转到根部位置
+     * 通过一系列旋转，使得被访问的节点成为树的根节点
+     * 时间复杂度: 平摊O(log n)
+     * 
+     * @param x 需要伸展到根部的节点
+     */
     void splay(Node* x) {
         if (!x) return;
 
@@ -56,7 +85,13 @@ private:
         root = x;
     }
 
-    // 单旋转优化
+    /**
+     * 单旋转优化 - 处理父节点是根的情况
+     * 对应Zig或Zag操作
+     * 时间复杂度: O(1)
+     * 
+     * @param x 需要旋转的节点
+     */
     void singleRotate(Node* x) {
         Node* p = x->parent;
         if (x == p->left) {
@@ -66,7 +101,13 @@ private:
         }
     }
 
-    // 双旋转优化
+    /**
+     * 双旋转优化 - 处理父节点不是根的情况
+     * 对应Zig-Zig、Zig-Zag、Zag-Zig、Zag-Zag四种情况
+     * 时间复杂度: O(1)
+     * 
+     * @param x 需要旋转的节点
+     */
     void doubleRotate(Node* x) {
         Node* p = x->parent;
         Node* g = p->parent;
@@ -86,6 +127,18 @@ private:
         }
     }
 
+    /**
+     * 左旋转操作 - 时间复杂度: O(1)
+     * 将节点x的右子节点y提升为其位置，x变为y的左子节点
+     * 
+     *    x          y
+     *   / \        / \
+     *  a   y  =>  x   c
+     *     / \    / \
+     *    b   c  a   b
+     * 
+     * @param x 需要左旋的节点
+     */
     void rotateLeft(Node* x) {
         Node* y = x->right;
         operationCount++;
@@ -102,6 +155,18 @@ private:
         x->parent = y;
     }
 
+    /**
+     * 右旋转操作 - 时间复杂度: O(1)
+     * 将节点x的左子节点y提升为其位置，x变为y的右子节点
+     * 
+     *    x          y
+     *   / \        / \
+     *  y   c  =>  a   x
+     * / \            / \
+     *a   b          b   c
+     * 
+     * @param x 需要右旋的节点
+     */
     void rotateRight(Node* x) {
         Node* y = x->left;
         operationCount++;
@@ -286,7 +351,7 @@ public:
     }
 };
 
-// 修改BST类，添加操作计数
+// 二叉树
 class BST {
 private:
     struct BSTNode {
@@ -390,7 +455,7 @@ private:
     }
 };
 
-// 优化的文本处理函数
+// 文本处理
 vector<string> processFile(const string& filename) {
     vector<string> words;
     words.reserve(100000);  // 预分配空间
@@ -423,7 +488,7 @@ vector<string> processFile(const string& filename) {
     return words;
 }
 
-// 添加随机单词生成函数
+// 随机单词生成函数
 string generateRandomWord(int len) {
     static const char charset[] = "abcdefghijklmnopqrstuvwxyz";
     string word;

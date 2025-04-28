@@ -2,7 +2,22 @@
 #include "ui_mainwindow.h"
 #include <QMessageBox>
 #include <QTimer>
+#include <QSet>
 
+
+/**
+ * 管理用户交互和树的状态
+ * 树操作功能：
+ * 插入节点
+    * 删除节点
+    * 查找节点
+    * 拆分树
+    * 合并树
+ * 界面管理
+ * 状态显示 - 显示树的节点数和操作结果
+        树的更新 - updateTreeDisplay()
+        操作日志 - 显示在文本浏览器中
+*/
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -20,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->mergeButton, &QPushButton::clicked, this, &MainWindow::onMergeClicked);
     connect(ui->clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);  // 连接清空树按钮
     connect(ui->exitButton, &QPushButton::clicked, this, &MainWindow::onExitClicked);    // 连接退出按钮
+    connect(ui->randomButton, &QPushButton::clicked, this, &MainWindow::onRandomClicked); // 连接随机生成按钮
     
     // 添加回车键支持
     connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::onInsertClicked);
@@ -55,7 +71,7 @@ void MainWindow::updateTreeDisplay()
 }
 
 void MainWindow::onInsertClicked() {
-    static const int MAX_NODES = 50;  // 限制最大节点数
+    static const int MAX_NODES = 15;  // 最大节点数限制为15
     
     bool ok;
     int val = ui->lineEdit->text().toInt(&ok);
@@ -70,13 +86,31 @@ void MainWindow::onInsertClicked() {
         return;
     }
     
-    m_tree.insert(val);
+    // 尝试插入前先禁用控件，防止多次操作
+    setControlsEnabled(false);
     
-    // 使用定时器延迟更新显示
-    QTimer::singleShot(0, this, &MainWindow::updateTreeDisplay);
+    try {
+        // 插入节点
+        m_tree.insert(val);
+        
+        // 安全地更新显示
+        QTimer::singleShot(0, this, [this, val]() {
+            try {
+                updateTreeDisplay();
+                ui->textBrowser->append(QString("插入节点: %1 (当前大小: %2)")
+                                      .arg(val).arg(m_tree.size()));
+            } catch (const std::exception& e) {
+                QMessageBox::critical(this, "错误", QString("更新显示时发生异常: %1").arg(e.what()));
+            }
+            
+            // 恢复控件状态
+            setControlsEnabled(true);
+        });
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "错误", QString("插入节点时发生异常: %1").arg(e.what()));
+        setControlsEnabled(true);
+    }
     
-    ui->textBrowser->append(QString("插入节点: %1 (当前大小: %2)")
-                          .arg(val).arg(m_tree.size()));
     ui->lineEdit->clear();
     ui->lineEdit->setFocus();
 }
@@ -388,6 +422,7 @@ void MainWindow::setControlsEnabled(bool enabled) {
     ui->mergeButton->setEnabled(enabled);
     ui->clearButton->setEnabled(enabled);  // 添加清空树按钮的控制
     ui->exitButton->setEnabled(enabled);   // 添加退出按钮的控制
+    ui->randomButton->setEnabled(enabled); // 添加随机生成按钮的控制
     ui->lineEdit->setEnabled(enabled);
 }
 
@@ -397,4 +432,111 @@ void MainWindow::cleanup_split_state() {
     m_leftTree = m_rightTree = nullptr;
     m_isInSplitState = false;
     SplayTree<int>::cleanup_unused();
+}
+
+// 修改随机生成树的槽函数实现
+void MainWindow::onRandomClicked() {
+    static const int MAX_RANDOM_NODES = 7; // 将最大随机节点数从10减少到7
+    static const int MAX_NODE_VALUE = 15;  // 随机节点的最大值
+    
+    // 如果当前树不为空，询问用户是否清空
+    if (m_tree.size() > 0) {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("确认操作");
+        msgBox.setText("生成随机树将替换当前树。是否继续？");
+        msgBox.setIcon(QMessageBox::Question);
+        
+        QPushButton *yesButton = msgBox.addButton("确定", QMessageBox::YesRole);
+        QPushButton *noButton = msgBox.addButton("取消", QMessageBox::NoRole);
+        
+        yesButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #3498db;"
+            "   color: white;"
+            "   font-weight: bold;"
+            "   padding: 6px 20px;"
+            "   border-radius: 4px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #2980b9;"
+            "}"
+        );
+        
+        noButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #95a5a6;"
+            "   color: white;"
+            "   padding: 6px 20px;"
+            "   border-radius: 4px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #7f8c8d;"
+            "}"
+        );
+        
+        msgBox.setDefaultButton(noButton);
+        msgBox.exec();
+        
+        if (msgBox.clickedButton() != yesButton) {
+            return;
+        }
+        
+        // 清空当前树
+        m_tree.clear(m_tree.root);
+        m_tree.root = nullptr;
+        m_tree.p_size = 0;
+    }
+    
+    // 随机生成节点数量 (3-7)，进一步减少节点数量范围
+    int numNodes = 3 + (rand() % (MAX_RANDOM_NODES - 2));
+    
+    // 创建一个集合用于跟踪已插入的值，避免重复
+    QSet<int> insertedValues;
+    
+    // 禁用所有控件，防止用户重复操作
+    setControlsEnabled(false);
+    
+    // 使用QTimer添加动画效果，每隔一段时间插入一个节点
+    QTimer *timer = new QTimer(this);
+    int nodeIndex = 0;
+    
+    connect(timer, &QTimer::timeout, this, [this, timer, numNodes, &nodeIndex, &insertedValues]() {
+        if (nodeIndex < numNodes) {
+            // 生成一个尚未使用的随机值
+            int val;
+            do {
+                val = rand() % MAX_NODE_VALUE + 1;
+            } while (insertedValues.contains(val));
+            
+            insertedValues.insert(val);
+            
+            // 插入节点
+            m_tree.insert(val);
+            
+            // 更新UI
+            updateTreeDisplay();
+            
+            // 添加日志
+            ui->textBrowser->append(QString("随机插入节点: %1 (%2/%3)")
+                                  .arg(val).arg(nodeIndex + 1).arg(numNodes));
+            
+            nodeIndex++;
+        } else {
+            // 所有节点已插入，停止定时器
+            timer->stop();
+            timer->deleteLater();
+            
+            // 恢复控件状态
+            setControlsEnabled(true);
+            
+            // 最终更新显示
+            QTimer::singleShot(50, this, &MainWindow::updateTreeDisplay);
+            
+            // 添加完成日志
+            ui->textBrowser->append(QString("随机生成树完成，共 %1 个节点").arg(numNodes));
+        }
+    });
+    
+    // 每200毫秒插入一个节点
+    timer->start(200);
 }

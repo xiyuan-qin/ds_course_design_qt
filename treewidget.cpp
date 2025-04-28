@@ -2,6 +2,18 @@
 #include <QPainterPath>
 #include <QtMath>
 
+/**
+ * 专门负责树的可视化绘制：
+ * 绘制功能：
+
+节点绘制 - 包括美化效果（渐变、阴影）
+树结构布局 - 自动适配窗口大小
+连线绘制 - 使用贝塞尔曲线
+动画效果：
+
+节点旋转动画 - 最近旋转的节点有特殊颜色标记
+适应不同规模的树 - 自动缩放
+ */
 TreeWidget::TreeWidget(QWidget *parent) : QWidget(parent) {
     m_lastRotation.start();  // 初始化计时器
 }
@@ -71,18 +83,37 @@ void TreeWidget::paintEvent(QPaintEvent* event) {
         
         painter.save();
         
-        // 修改缩放和位置计算
+        // 修改缩放算法，使树更好地适应屏幕大小
         int maxDepth = calculateTreeDepth(m_trees[i]->root);
-        float hScale = treeWidth / (pow(2, maxDepth) * 100.0f);
-        float vScale = height() / (maxDepth * 150.0f);
+        int nodeCount = m_trees[i]->size();
+        
+        // 检查树的规模并调整缩放因子
+        float hScale = 1.0f;
+        float vScale = 1.0f;
+        
+        // 根据节点数量和深度调整水平缩放比例
+        if (nodeCount > 7) {
+            // 使用指数缩放方式，大树缩放更多
+            hScale = treeWidth / (pow(2, qMin(maxDepth, 4)) * 45.0f);
+        } else {
+            hScale = treeWidth / (pow(2, maxDepth) * 60.0f);
+        }
+        
+        // 调整垂直缩放比例
+        vScale = height() / (maxDepth * 150.0f + 50);
+        
+        // 确保不会过度缩放
         float scale = qMin(qMin(hScale, vScale), 1.0f);
+        
+        // 提高最小缩放因子以确保可见性
+        if (scale < 0.3f) scale = 0.3f;
         
         // 移动原点到每棵树的顶部中心
         painter.translate(i * treeWidth + treeWidth/2, 50);
         painter.scale(scale, scale);
         
         // 从根节点开始绘制，使用相对坐标
-        drawNode(painter, m_trees[i]->root, -30, 0, 0);
+        drawNode(painter, m_trees[i]->root, 0, 0, 0);
         
         painter.restore();
     }
